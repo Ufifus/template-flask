@@ -1,10 +1,13 @@
 import os
 from datetime import datetime
 from typing import Optional
+from flask import jsonify
 
 import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
+
+from .errors import CustomError
 
 # Load environment variables
 load_dotenv()
@@ -22,9 +25,10 @@ def db_decorator(func):
     def wrapper(*args, **kwargs):
         try:
             return func(conn, *args, **kwargs)
-        except Exception as e:
+        except CustomError as e:
             print(e)
             conn.rollback()
+            return jsonify({'error': e.message}), e.code
         finally:
             conn.close()
     return wrapper

@@ -15,10 +15,8 @@ from api import child_app, Config
 
 def create_app():
     """
-    Creates and configures an instance of the Flask application.
-
-    Returns:
-        Flask app: The configured Flask application instance.
+    Главное приложение для запуска сервера,
+    здесь прописываются настройки запуска и так же связываются дочерние проекты с главным
     """
     app = Flask(__name__, static_url_path='')
     app.config.from_object(Config)
