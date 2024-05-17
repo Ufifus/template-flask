@@ -5,8 +5,8 @@ registering Flask blueprints, setting up Cross-Origin Resource Sharing (CORS),
 and configuring application logging.
 """
 import logging
+import sys
 
-from dotenv import load_dotenv
 from flask import Flask
 from flask_cors import CORS
 
@@ -28,7 +28,21 @@ def create_app():
     CORS(app, resources={r"/*": {"origins": "*"}})
 
     # Logging configuration
-    logging.basicConfig(filename='INFO.log', level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG)
+
+    # Console handler for all log levels
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.DEBUG)
+    console_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(console_formatter)
+    logging.getLogger().addHandler(console_handler)
+
+    # File handler for critical errors
+    file_handler = logging.FileHandler('CRITICAL.log')
+    file_handler.setLevel(logging.CRITICAL)
+    file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(file_formatter)
+    logging.getLogger().addHandler(file_handler)
 
     return app
 
