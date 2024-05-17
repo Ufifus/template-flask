@@ -1,7 +1,12 @@
-import psycopg2
+import logging
 
+import psycopg2
+import psycopg2.extras
 from flask import jsonify
+
 from utils import jwt_decorator, db_decorator, CustomError
+
+logger = logging.getLogger(__name__)
 
 
 @jwt_decorator
@@ -19,10 +24,11 @@ def index(conn, request):
             conn.commit() # Опциональное поле для сохранения измений в бд
         return jsonify(...), <status_code> # Возвращаем json и статус ошибки
     """
-    print(request)
+    logger.debug('Handling index request: %s', request.path)
     with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
         cur.execute("SELECT count(*) FROM filler_xml")
         count = cur.fetchone()[0]
         if count < 1000:
-            raise CustomError('Error view cheking', 404)
+            logger.warning('Data count below threshold: %d', count)
+            raise CustomError('Error view checking', 404)
     return jsonify({'working': True}), 200
