@@ -27,23 +27,6 @@ def create_app():
     # Configure CORS with default settings
     CORS(app, resources={r"/*": {"origins": "*"}})
 
-    # Logging configuration
-    logging.basicConfig(level=logging.DEBUG)
-
-    # Console handler for all log levels
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(logging.DEBUG)
-    console_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    console_handler.setFormatter(console_formatter)
-    logging.getLogger().addHandler(console_handler)
-
-    # File handler for critical errors
-    file_handler = logging.FileHandler('CRITICAL.log')
-    file_handler.setLevel(logging.CRITICAL)
-    file_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(file_formatter)
-    logging.getLogger().addHandler(file_handler)
-
     return app
 
 

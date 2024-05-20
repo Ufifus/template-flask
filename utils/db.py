@@ -5,10 +5,10 @@ import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
 from flask import jsonify
+from sshtunnel import SSHTunnelForwarder
 
 from .errors import CustomError
-
-logger = logging.getLogger(__name__)
+from .logger import logger
 
 # Load environment variables
 load_dotenv()
@@ -25,7 +25,32 @@ db_params = {
 def db_decorator(func):
     def wrapper(*args, **kwargs):
         # Manage database connections within the decorator to avoid persistent connections.
-        conn = psycopg2.connect(**db_params)
+        if int(os.getenv("SSH_USE")):
+            # Create an SSH tunnel
+            tunnel = SSHTunnelForwarder(
+                ('158.160.16.124', 22),
+                ssh_username='maintenance',
+                ssh_private_key=os.getenv("SSH_PRIVATE_KEY"),
+                remote_bind_address=('127.0.0.1', 5432),
+                local_bind_address=('localhost', 5432),  # could be any available port
+            )
+            # Start the tunnel
+            try:
+                tunnel.start()
+            except Exception as e:
+                logger.error("SSH ERROR: Non connected because " + str(e))
+                tunnel.quit()
+
+            # Create a database connection
+            conn = psycopg2.connect(
+                database=os.getenv("SSH_DB_NAME"),
+                user=os.getenv("SSH_DB_USER"),
+                password=os.getenv("SSH_DB_PASSWORD"),
+                host=tunnel.local_bind_host,
+                port=tunnel.local_bind_port
+            )
+        else:
+            conn = psycopg2.connect(**db_params)
         try:
             logger.debug('Database connection established')
             return func(conn, *args, **kwargs)
